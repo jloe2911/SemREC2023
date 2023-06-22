@@ -17,7 +17,7 @@ import torch_geometric
 from torch_geometric.data import HeteroData
 import torch_geometric.transforms as T
 from torch_geometric.nn import GCNConv, SAGEConv, GATConv, Linear, to_hetero
-from torch_geometric.utils import negative_sampling
+from torch_geometric.utils import negative_sampling, structured_negative_sampling
 
 from sklearn.metrics import precision_score, recall_score, f1_score
     
@@ -85,7 +85,7 @@ class GNN():
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         torch.manual_seed(self.seed)
     
-    def _train(self, g_train, GNN_variant):
+    def _train(self, GNN_variant, g_train, g_train_filter = None):
         adj = nx.to_scipy_sparse_array(g_train)
         pos_edge_index = torch_geometric.utils.from_scipy_sparse_matrix(adj)[0]
         neg_edge_index = negative_sampling(pos_edge_index)
@@ -102,7 +102,10 @@ class GNN():
             self.model = GAT(self.hidden_dim, self.output_dim).to(self.device)
         elif GNN_variant == 'GAT_2hops':
             self.model = GAT_2hops(self.hidden_dim, self.output_dim).to(self.device)
-            adj_2hops = adj.dot(adj)
+            if g_train_filter is not None: 
+                adj_2hops = nx.to_scipy_sparse_array(g_train_filter)
+            else: 
+                adj_2hops = adj.dot(adj)
             edge_index_2hops = torch_geometric.utils.from_scipy_sparse_matrix(adj_2hops)[0].to(self.device)
 
         optimizer = torch.optim.Adam(self.model.parameters(), lr=0.005, weight_decay=5e-4)    
@@ -110,6 +113,8 @@ class GNN():
         edge_index, targets = shuffle_predictions_targets(edge_index, targets, self.device)
         
         print(f'{GNN_variant}:')
+        if g_train_filter is not None: print('+ Filter...')
+        
         for i in range(self.epochs+1):
             self.model.train()
             optimizer.zero_grad()
@@ -133,7 +138,7 @@ class GNN():
                 #hits1, hits10 = eval_hits(1, g_train, pos_edge_index.to(self.device), embeds, 100, self.device)
                 #print(f'hits@1: {hits1:.3f}, hits@10: {hits10:.3f}')
 
-    def _eval(self, g_test, max_num, GNN_variant):
+    def _eval(self, max_num, GNN_variant, g_test, g_test_filter = None):
          with torch.no_grad():
                 self.model.eval()
                 
@@ -143,7 +148,10 @@ class GNN():
                 edge_index = torch.cat([pos_edge_index, neg_edge_index], dim=1).to(self.device)
                 
                 if GNN_variant == 'GAT_2hops':
-                    adj_2hops = adj.dot(adj)
+                    if g_test_filter is not None: 
+                        adj_2hops = nx.to_scipy_sparse_array(g_test_filter)
+                    else: 
+                        adj_2hops = adj.dot(adj)
                     edge_index_2hops = torch_geometric.utils.from_scipy_sparse_matrix(adj_2hops)[0]
                     edge_index_2hops = edge_index_2hops.to(torch.int64).to(self.device)
                 
@@ -219,13 +227,14 @@ def eval_hits(tail_pred, g_test, pos_edge_index, output, max_num, device):
             top10 += 1
     return top1/n, top10/n
 
-def sample_negative_edges_idx(idx, tail_pred, g_test, pos_edge_index, output, max_num, device):
+def sample_negative_edges_idx(idx, g_test, pos_edge_index, output, max_num, device):
     num_neg_samples = 0
     candidates = []
     nodes = list(range(g_test.number_of_nodes()))
     random.shuffle(nodes)
     
     while num_neg_samples < max_num:    
+        true_head, true_tail, cand_tail = structured_negative_sampling(x, num_nodes=100)
         if tail_pred == 1:
             t = nodes[num_neg_samples]
             h = pos_edge_index[0, idx].item()
