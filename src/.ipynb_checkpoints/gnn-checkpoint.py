@@ -17,7 +17,7 @@ import torch_geometric
 from torch_geometric.data import HeteroData
 import torch_geometric.transforms as T
 from torch_geometric.nn import GCNConv, SAGEConv, GATConv, Linear, to_hetero
-from torch_geometric.utils import negative_sampling
+from torch_geometric.utils import negative_sampling, structured_negative_sampling
 
 from sklearn.metrics import precision_score, recall_score, f1_score
     
@@ -82,10 +82,11 @@ class GNN():
         self.hidden_dim = 200
         self.output_dim = 200
         self.seed = 10
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         torch.manual_seed(self.seed)
     
-    def _train(self, GNN_variant, g_train, g_train_filter = None):
+    def _train(self, device, GNN_variant, g_train, g_train_filter = None):
+        self.device = device
+        
         adj = nx.to_scipy_sparse_array(g_train)
         pos_edge_index = torch_geometric.utils.from_scipy_sparse_matrix(adj)[0]
         neg_edge_index = negative_sampling(pos_edge_index)

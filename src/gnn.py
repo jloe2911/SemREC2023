@@ -6,8 +6,6 @@ import networkx as nx
 import random
 random.seed(10)
 
-from node2vec import Node2Vec
-
 import torch
 import torch.nn as nn
 from torch.nn import Linear
@@ -82,10 +80,11 @@ class GNN():
         self.hidden_dim = 200
         self.output_dim = 200
         self.seed = 10
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         torch.manual_seed(self.seed)
     
-    def _train(self, GNN_variant, g_train, g_train_filter = None):
+    def _train(self, device, GNN_variant, g_train, g_train_filter = None):
+        self.device = device
+        
         adj = nx.to_scipy_sparse_array(g_train)
         pos_edge_index = torch_geometric.utils.from_scipy_sparse_matrix(adj)[0]
         neg_edge_index = negative_sampling(pos_edge_index)
@@ -227,14 +226,13 @@ def eval_hits(tail_pred, g_test, pos_edge_index, output, max_num, device):
             top10 += 1
     return top1/n, top10/n
 
-def sample_negative_edges_idx(idx, g_test, pos_edge_index, output, max_num, device):
+def sample_negative_edges_idx(idx, tail_pred, g_test, pos_edge_index, output, max_num, device):
     num_neg_samples = 0
     candidates = []
     nodes = list(range(g_test.number_of_nodes()))
     random.shuffle(nodes)
     
     while num_neg_samples < max_num:    
-        true_head, true_tail, cand_tail = structured_negative_sampling(x, num_nodes=100)
         if tail_pred == 1:
             t = nodes[num_neg_samples]
             h = pos_edge_index[0, idx].item()
