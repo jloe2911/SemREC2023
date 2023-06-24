@@ -11,5 +11,3 @@
 * Filter Transitive Graph Attention Network (FilterTransGAT): TransGAT with a filtering mechanism that only applies transitivtiy for "SubClassOf" edges.
 
 The metrics are Hits@1 and Hits@10. 
-
-```Models``` contains the trained models that were used for CaLiGraph_10e5 and CaLiGraph_Full.
