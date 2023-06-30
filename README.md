@@ -4,10 +4,10 @@
 2. Download [ORE](https://github.com/semrec/semrec.github.io/tree/main/Datasets_SemREC2022/OWL2Bench).
 3. Download [CaLiGraph](https://data.dws.informatik.uni-mannheim.de/CaLiGraph/CaLiGraph-for-SemREC/SemREC-2022-Datasets/).
 4. Add the mentioned ontologies to a folder ```datasets```.
-5. Run ```assertion_reasoner.ipynb``` (class membership) and/or ```subclass_reasoner.ipynb``` (class subsumption task) and/or ```reasoner.ipynb``` (considers all relations). All notebooks employ:
+5. Run ```train.ipynb```. The notebook employs:
 
 * Graph Attention Network (GAT).
-* Transitive Graph Attention Network (TransGAT): an extended version of Graph Attention Network that encompasses transitivity (aggregation of node information that are 2 hops away). 
-* Filter Transitive Graph Attention Network (FilterTransGAT): TransGAT with a filtering mechanism that only applies transitivtiy for "SubClassOf" edges.
+* 2-Hop Graph Attention Network (2-Hop GAT): an extended version of Graph Attention Network that aggregates node information that are 2 hops away. 
+* SubClass Graph Attention Network (SubClass GAT): 2-Hop GAT with a filtering mechanism that only applies 2-hops for "SubClassOf" edges. (Rule: if A is SubClass of B and B is SubClass of C, then A is SubClass of C)
 
 The metrics are Hits@1 and Hits@10. 
