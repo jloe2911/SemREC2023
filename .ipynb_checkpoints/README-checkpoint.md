@@ -8,6 +8,6 @@
 
 * Graph Attention Network (GAT).
 * 2-Hop Graph Attention Network (2-Hop GAT): an extended version of Graph Attention Network that aggregates node information that are 2 hops away. 
-* SubClass Graph Attention Network (SubClass GAT): 2-Hop GAT with a filtering mechanism that only applies 2-hops for "SubClassOf" edges. (Rule: if A is SubClass of B and B is SubClass of C, then A is SubClass of C)
+* Filtered 2-Hop Graph Attention Network (2-Hop GAT): Filtered 2-Hop GAT with a filtering mechanism to include two rules.
 
 The metrics are Hits@1 and Hits@10. 

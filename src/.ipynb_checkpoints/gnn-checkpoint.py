@@ -101,13 +101,8 @@ class GNN():
             self.model = GAT(self.hidden_dim, self.output_dim).to(self.device)
         elif GNN_variant == '2-Hop GAT':
             self.model = Two_Hop_GAT(self.hidden_dim, self.output_dim).to(self.device)
-            if g_subclass_filter is not None:
-                adj_subclass = nx.to_scipy_sparse_array(g_subclass_filter)
-                adj_2hop = adj_subclass.dot(adj_subclass)
-                edge_index_2hop = torch_geometric.utils.from_scipy_sparse_matrix(adj_2hop)[0].to(self.device)
-            else:
-                adj_2hop = adj.dot(adj)
-                edge_index_2hop = torch_geometric.utils.from_scipy_sparse_matrix(adj_2hop)[0].to(self.device)
+            adj_2hop = adj.dot(adj)
+            edge_index_2hop = torch_geometric.utils.from_scipy_sparse_matrix(adj_2hop)[0].to(self.device)
         elif GNN_variant == 'GAT Reasoner':
             self.model = Two_Hop_GAT(self.hidden_dim, self.output_dim).to(self.device)
             adj_assertion = nx.to_scipy_sparse_array(g_assertion_filter)
@@ -131,8 +126,8 @@ class GNN():
             elif GNN_variant == 'GAT Reasoner':
                 embeds_assertion = self.model(self.node_embeds, edge_index_assertion, edge_index_subclass_2hop).to(self.device)
                 embeds_subclass = self.model(self.node_embeds, edge_index_subclass, edge_index_subclass_2hop).to(self.device)
-                embeds_2hop = self.model(self.node_embeds, edge_index, edge_index_2hop).to(self.device)
-                embeds = torch.concat([embeds_assertion, embeds_subclass, embeds_2hop])
+                embeds_1hop = self.model(self.node_embeds, edge_index).to(self.device)
+                embeds = torch.concat([embeds_assertion, embeds_subclass, embeds_1hop])
             else:
                 embeds = self.model(self.node_embeds, edge_index).to(self.device)
                 
@@ -158,13 +153,8 @@ class GNN():
                 edge_index = torch.cat([pos_edge_index, neg_edge_index], dim=1).to(self.device)
                 
                 if GNN_variant == '2-Hop GAT':
-                    if g_subclass_filter is not None:
-                        adj_subclass = nx.to_scipy_sparse_array(g_subclass_filter)
-                        adj_2hop = adj_subclass.dot(adj_subclass)
-                        edge_index_2hop = torch_geometric.utils.from_scipy_sparse_matrix(adj_2hop)[0].to(self.device)
-                    else:
-                        adj_2hop = adj.dot(adj)
-                        edge_index_2hop = torch_geometric.utils.from_scipy_sparse_matrix(adj_2hop)[0].to(self.device)
+                    adj_2hop = adj.dot(adj)
+                    edge_index_2hop = torch_geometric.utils.from_scipy_sparse_matrix(adj_2hop)[0].to(self.device)
                 
                 if GNN_variant == 'GAT Reasoner':
                     adj_assertion = nx.to_scipy_sparse_array(g_assertion_filter)
@@ -180,8 +170,8 @@ class GNN():
                 elif GNN_variant == 'GAT Reasoner':
                     embeds_assertion = self.model(self.node_embeds, edge_index_assertion, edge_index_subclass_2hop).to(self.device)
                     embeds_subclass = self.model(self.node_embeds, edge_index_subclass, edge_index_subclass_2hop).to(self.device)
-                    embeds_2hop = self.model(self.node_embeds, edge_index, edge_index_2hop).to(self.device)
-                    output = torch.concat([embeds_assertion, embeds_subclass, embeds_2hop])
+                    embeds_1hop = self.model(self.node_embeds, edge_index).to(self.device)
+                    output = torch.concat([embeds_assertion, embeds_subclass, embeds_1hop])
                 else:
                     output = self.model(self.node_embeds, edge_index).to(self.device)
                 
@@ -203,7 +193,12 @@ class GNN():
                 #print()
                 ######
                 
-                hits1, hits10 = eval_hits(tail_pred=1, g_test=g_test, pos_edge_index=pos_edge_index.to(self.device), output=output, max_num=max_num, device=self.device)
+                hits1, hits10 = eval_hits(tail_pred=1, 
+                                          g_test=g_test, 
+                                          pos_edge_index=pos_edge_index.to(self.device), 
+                                          output=output, 
+                                          max_num=max_num, 
+                                          device=self.device)
                 print(f'hits@1: {hits1:.3f}, hits@10: {hits10:.3f}')
                 print('--------')
                 
@@ -230,7 +225,13 @@ def eval_hits(tail_pred, g_test, pos_edge_index, output, max_num, device):
         else:
             x = torch.index_select(output, 0, pos_edge_index[1, idx])
         
-        candidates, candidates_embeds = sample_negative_edges_idx(idx=idx,tail_pred=tail_pred,g_test=g_test,pos_edge_index=pos_edge_index,output=output,max_num=max_num, device=device)
+        candidates, candidates_embeds = sample_negative_edges_idx(idx=idx,
+                                                                  tail_pred=tail_pred,
+                                                                  g_test=g_test,
+                                                                  pos_edge_index=pos_edge_index,
+                                                                  output=output,
+                                                                  max_num=max_num, 
+                                                                  device=device)
 
         distances = torch.cdist(candidates_embeds, x, p=2)
         dist_dict = {cand: dist for cand, dist in zip(candidates, distances)} 

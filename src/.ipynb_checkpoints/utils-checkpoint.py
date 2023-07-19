@@ -71,7 +71,8 @@ def load_ore_graphs(path, train_file, test_file):
     
     print()
     
-    return g_train, g_train_filter_subclass, g_train_filter_assertion, g_test, g_test_filter_subclass, g_test_filter_assertion
+    return g_train, g_train_filter_subclass, g_train_filter_assertion, \
+           g_test, g_test_filter_subclass, g_test_filter_assertion
 
 def load_clg_files(pathfilename):
     
@@ -118,4 +119,5 @@ def load_clg_graphs(path, train_file, test_file):
     
     print()
     
-    return g_train, g_train_filter_subclass, g_train_filter_assertion, g_test, g_test_filter_subclass, g_test_filter_assertion
+    return g_train, g_train_filter_subclass, g_train_filter_assertion, \
+           g_test, g_test_filter_subclass, g_test_filter_assertion
