@@ -10,7 +10,7 @@
 * 2-Hop Graph Attention Network (2-Hop GAT): an extended version of Graph Attention Network that aggregates node information that are 2 hops away. 
 * Filtered 2-Hop Graph Attention Network (Filtered 2-Hop GAT): Filtered 2-Hop GAT with a filtering mechanism to include two rules.
 
-6. Run ```eval.ipynb``` to evaluate the models. The metrics are Hits@1 and Hits@10. 
+6. Run ```eval.ipynb``` to evaluate the models. The metrics are Hits@1 and Hits@10. The trained models can also be found [here](https://drive.google.com/drive/folders/1-PYc8YT9iukTdUkhf-PRbksAxv0jfjq4?usp=sharing).
 
 # Quick Tour
 
