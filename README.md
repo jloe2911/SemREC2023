@@ -8,6 +8,12 @@
 
 * Graph Attention Network (GAT).
 * 2-Hop Graph Attention Network (2-Hop GAT): an extended version of Graph Attention Network that aggregates node information that are 2 hops away. 
-* Filtered 2-Hop Graph Attention Network (2-Hop GAT): Filtered 2-Hop GAT with a filtering mechanism to include two rules.
+* Filtered 2-Hop Graph Attention Network (Filtered 2-Hop GAT): Filtered 2-Hop GAT with a filtering mechanism to include two rules.
 
-The metrics are Hits@1 and Hits@10. 
+6. Run ```eval.ipynb``` to evaluate the models. The metrics are Hits@1 and Hits@10. 
+
+# Quick Tour
+
+- ```caligraph_full.ipynb```: enables to run GAT, 2-Hop GAT and Filtered 2-Hop GAT on the entire caligraph ontology. 
+- ```axioms.ipynb```: enables to output the number of different axioms for each dataset. 
+- ```stats.ipynb```: enables to output the number of different edges and the number of nodes for each dataset. 
